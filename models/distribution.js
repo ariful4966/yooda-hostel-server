@@ -12,15 +12,10 @@ const distributionSchema = new Schema(
     },
     shift: Boolean,
     status: {
-        type: String,
-        enum: ["done", "panding", "process"],
+      type: String,
+      enum: ["done", "panding", "process"],
     },
-    foodItemList: [
-      {
-        foodName: String,
-        price: Number,
-      },
-    ],
+    foodItemList: [Schema.Types.ObjectId],
   },
   {
     timestamps: true,

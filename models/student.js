@@ -2,30 +2,26 @@ const { Schema, model } = require("mongoose");
 
 const studentSchema = new Schema(
   {
-    fullName: {
+    name: {
       type: String,
       trim: true,
-      maxlength: 50,
+      maxlength: 100,
     },
-    roll: {
-      type: Number,
-      trim: true,
-      unique: true,
-    },
-    age: {
-      type: Number,
-      trim: true,
-      min: 5,
-      max: 25,
+    rollNumber: Number,
+    age: Number,
+    class: {
+        type: String,
+        enum: ["six", "seven", "eight", "nin", "ten"]
     },
     hall: {
-      type: String,
-      trim: true,
+        type: String,
+        enum: ["rokeya", "nazrul"]
     },
     status: {
-      type: String,
-      enum: ["active", "inActive"],
+        type: String,
+        enum: ["active", "inActive"]
     },
+    
   },
   {
     timestamps: true,
