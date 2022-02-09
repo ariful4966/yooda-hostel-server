@@ -1,4 +1,5 @@
 const { Schema, model } = require("mongoose");
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 const studentSchema = new Schema(
   {
@@ -11,15 +12,15 @@ const studentSchema = new Schema(
     age: Number,
     class: {
         type: String,
-        enum: ["six", "seven", "eight", "nin", "ten"]
+        enum: ["six", "seven", "eight", "nine", "ten"]
     },
     hall: {
         type: String,
-        enum: ["rokeya", "nazrul"]
+        enum: ["rokeya", "nazrul", "robindro"]
     },
     status: {
         type: String,
-        enum: ["active", "inActive"]
+        enum: ["active", "inactive"]
     },
     
   },
@@ -27,6 +28,7 @@ const studentSchema = new Schema(
     timestamps: true,
   }
 );
+studentSchema.plugin(mongoosePaginate)
 
 const Student = model("Student", studentSchema);
 

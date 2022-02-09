@@ -11,6 +11,11 @@ const adminSchema = new Schema(
       type: String,
       trim: true,
     },
+    password: {
+      type: String,
+      trim: true,
+      minlength: 5
+    },
     role:{
         type: String,
         enum: ["admin", "editor"]

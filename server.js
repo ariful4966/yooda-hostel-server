@@ -5,11 +5,12 @@ const Admin = require("./models/admin");
 const Distribution = require("./models/distribution");
 const FoodItem = require("./models/foodItem");
 const Student = require("./models/student");
-// const Student = require("./models/student");
+const cors = require("cors");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 app.use(express.json());
+app.use(cors());
 
 mongoose
   .connect("mongodb://localhost:27017/yoodaHostel")
@@ -36,27 +37,62 @@ app.get("/admin", (req, res) => {
 });
 
 // Insert Admin
-// app.post("/admin", (req, res) => {
-//   Admin.create(req.body)
-//     .then((result) => {
-//       res.send({
-//         message: "Admin Create Successfully",
-//         data: result,
-//       });
-//     })
-//     .catch((err) => {
-//       res.send({
-//         error: err.message,
-//       });
-//     });
-// });
+app.post("/admin", (req, res) => {
+  Admin.create(req.body)
+    .then((result) => {
+      res.send({
+        message: "Admin Create Successfully",
+        data: result,
+      });
+    })
+    .catch((err) => {
+      res.send({
+        error: err.message,
+      });
+    });
+});
+
+/**
+ * @Title : Login System
+ *
+ */
+
+app.post("/login", (req, res) => {
+  const { email, password } = req.body;
+
+  Admin.findOne({ email: email, password: password })
+    .then((result) => {
+      if (result === null) {
+
+        
+        res.send({
+          message: "error Ocers",
+        });
+      }else{
+        const {name, email, role}=result;
+        res.send({
+          message: "Login successfully",
+          data: {
+            name, email, role
+          }, 
+        });
+      }
+      
+    })
+    .catch((error) => {
+      res.send({
+        error: error.message,
+      });
+    });
+});
 
 /**
  * @Title:  Get All Food Item data
  */
 
 app.get("/food", (req, res) => {
-  FoodItem.find()
+
+  FoodItem.paginate({},{page: req.query.page, limit: 2})
     .then((result) => {
       res.send({
         message: "All Food Item",
@@ -74,8 +110,8 @@ app.get("/food", (req, res) => {
  */
 
 app.post("/food", (req, res) => {
-  const admin = Admin.findOne(req.header.email);
-  admin
+  Admin.findOne({ email: req.headers.email })
+
     .then((adminResult) => {
       if (adminResult && adminResult.role === "admin") {
         FoodItem.create(req.body)
@@ -104,7 +140,8 @@ app.post("/food", (req, res) => {
  */
 
 app.get("/student", async (req, res) => {
-  await Student.find()
+  const { page } = req.query;
+  await Student.paginate({}, { page: page, limit: 5 })
     .then((result) => {
       res.send({
         data: result,
@@ -123,25 +160,27 @@ app.get("/student", async (req, res) => {
  */
 
 app.post("/student", async (req, res) => {
-  await Admin.findOne(req.headers.email).then(async (resAdmin) => {
-    if (resAdmin && resAdmin.role === "admin") {
-      await Student.create(req.body)
-        .then((result) => {
-          res.send({
-            data: result,
+  await Admin.findOne({ email: req.headers.email })
+    .then(async (resAdmin) => {
+      if (resAdmin && resAdmin.role === "admin") {
+        await Student.create(req.body)
+          .then((result) => {
+            res.send({
+              data: result,
+            });
+          })
+          .catch((err) => {
+            res.send({
+              error: err.message,
+            });
           });
-        })
-        .catch((err) => {
-          res.send({
-            error: err.message,
-          });
-        });
-    }
-  }).catch(error=>{
-    res.send({
-      error: error.message
+      }
     })
-  })
+    .catch((error) => {
+      res.send({
+        error: error.message,
+      });
+    });
 });
 
 /**
