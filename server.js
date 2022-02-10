@@ -177,27 +177,37 @@ app.get("/student", async (req, res) => {
  */
 
 app.post("/student", async (req, res) => {
-  await Admin.findOne({ email: req.headers.email })
-    .then(async (resAdmin) => {
-      if (resAdmin && resAdmin.role === "admin") {
-        await Student.create(req.body)
-          .then((result) => {
-            res.send({
-              data: result,
+
+  try {
+    const { token } = req.headers;
+    const { email } = decode(token);
+    await Admin.findOne({ email: email })
+      .then(async (resAdmin) => {
+        if (resAdmin && resAdmin.role === "admin") {
+          await Student.create(req.body)
+            .then((result) => {
+              res.send({
+                data: result,
+                message: "Student Information post successfully"
+              });
+            })
+            .catch((err) => {
+              res.send({
+                error: err.message,
+              });
             });
-          })
-          .catch((err) => {
-            res.send({
-              error: err.message,
-            });
-          });
-      }
-    })
-    .catch((error) => {
-      res.send({
-        error: error.message,
+        }
+      })
+      .catch((error) => {
+        res.send({
+          error: error.message,
+        });
       });
+  } catch (err) {
+    res.send({
+      error: err.message,
     });
+  }
 });
 
 /**

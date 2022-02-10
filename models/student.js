@@ -8,7 +8,7 @@ const studentSchema = new Schema(
       trim: true,
       maxlength: 100,
     },
-    rollNumber: Number,
+    roll: Number,
     age: Number,
     class: {
         type: String,
