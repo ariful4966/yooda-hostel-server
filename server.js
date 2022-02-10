@@ -177,7 +177,6 @@ app.get("/student", async (req, res) => {
  */
 
 app.post("/student", async (req, res) => {
-
   try {
     const { token } = req.headers;
     const { email } = decode(token);
@@ -188,7 +187,7 @@ app.post("/student", async (req, res) => {
             .then((result) => {
               res.send({
                 data: result,
-                message: "Student Information post successfully"
+                message: "Student Information post successfully",
               });
             })
             .catch((err) => {
@@ -203,6 +202,46 @@ app.post("/student", async (req, res) => {
           error: error.message,
         });
       });
+  } catch (err) {
+    res.send({
+      error: err.message,
+    });
+  }
+});
+
+/**
+ * @Student: Status update
+ */
+app.patch("/student/:id", async (req, res) => {
+  try {
+    const { token } = req.headers;
+    const { email } = decode(token);
+    const { id } = req.params;
+
+    await Admin.findOne({ email: email }).then(async (adminRes) => {
+      if (adminRes.role === "admin") {
+        await Student.findOneAndUpdate(
+          { _id: id },
+          {
+            $set: {
+              status: req.body.status,
+            },
+          },
+          { new: true }
+        )
+          .then((result) => {
+            res.send({
+              message: "Status successfully update",
+              data: result,
+            });
+          })
+          .catch((error) => {
+            res.send({
+              error: error.message,
+            });
+          });
+      }
+    });
   } catch (err) {
     res.send({
       error: err.message,
