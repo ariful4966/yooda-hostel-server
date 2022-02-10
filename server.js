@@ -6,6 +6,8 @@ const Distribution = require("./models/distribution");
 const FoodItem = require("./models/foodItem");
 const Student = require("./models/student");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
+const decode = require("jwt-decode");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -63,21 +65,28 @@ app.post("/login", (req, res) => {
   Admin.findOne({ email: email, password: password })
     .then((result) => {
       if (result === null) {
-
-        
         res.send({
-          message: "error Ocers",
+          error: "error Ocers",
         });
-      }else{
-        const {name, email, role}=result;
-        res.send({
-          message: "Login successfully",
-          data: {
-            name, email, role
-          }, 
-        });
+      } else {
+        const { name, email, role } = result;
+        jwt.sign(
+          { name: name, email: email, role: role },
+          process.env.JWT_SECRATE,
+          function (err, token) {
+            if (token) {
+              res.send({
+                message: "Login successfully",
+                token: token,
+              });
+            } else {
+              res.send({
+                error: err.message,
+              });
+            }
+          }
+        );
       }
-      
     })
     .catch((error) => {
       res.send({
@@ -91,8 +100,7 @@ app.post("/login", (req, res) => {
  */
 
 app.get("/food", (req, res) => {
-
-  FoodItem.paginate({},{page: req.query.page, limit: 2})
+  FoodItem.paginate({}, { page: req.query.page, limit: 5 })
     .then((result) => {
       res.send({
         message: "All Food Item",
@@ -109,30 +117,39 @@ app.get("/food", (req, res) => {
  * @Title:  Create A Food Item
  */
 
-app.post("/food", (req, res) => {
-  Admin.findOne({ email: req.headers.email })
+app.post("/food", async (req, res) => {
+  try {
+    const { token } = req.headers;
+    const { email } = decode(token);
 
-    .then((adminResult) => {
-      if (adminResult && adminResult.role === "admin") {
-        FoodItem.create(req.body)
-          .then((dataResult) => {
-            res.send({
-              message: "Create Food Item data successfully",
-              data: dataResult,
+    await Admin.findOne({ email: email })
+
+      .then((adminResult) => {
+        if (adminResult && adminResult.role === "admin") {
+          FoodItem.create(req.body)
+            .then((dataResult) => {
+              res.send({
+                message: "Create Food Item data successfully",
+                data: dataResult,
+              });
+            })
+            .catch((error) => {
+              res.send({
+                error: error.message,
+              });
             });
-          })
-          .catch((error) => {
-            res.send({
-              error: error.message,
-            });
-          });
-      }
-    })
-    .catch((err) => {
-      res.send({
-        error: err.message,
+        }
+      })
+      .catch((err) => {
+        res.send({
+          error: err.message,
+        });
       });
+  } catch (err) {
+    res.send({
+      error: err.message,
     });
+  }
 });
 
 /**
