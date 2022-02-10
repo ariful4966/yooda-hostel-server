@@ -39,19 +39,33 @@ app.get("/admin", (req, res) => {
 });
 
 // Insert Admin
-app.post("/admin", (req, res) => {
-  Admin.create(req.body)
-    .then((result) => {
-      res.send({
-        message: "Admin Create Successfully",
-        data: result,
-      });
-    })
-    .catch((err) => {
-      res.send({
-        error: err.message,
-      });
+app.post("/admin", async (req, res) => {
+  try {
+    await Admin.findOne({ email: req.body.email }).then(async (extAdmin) => {
+      if (!extAdmin) {
+        await Admin.create(req.body)
+          .then((result) => {
+            res.send({
+              message: "Admin Create Successfully",
+              data: result,
+            });
+          })
+          .catch((err) => {
+            res.send({
+              error: err.message,
+            });
+          });
+      } else {
+        res.send({
+          error: "Your Already Create A Account",
+        });
+      }
     });
+  } catch (err1) {
+    res.send({
+      error: err1.message,
+    });
+  }
 });
 
 /**
@@ -59,40 +73,46 @@ app.post("/admin", (req, res) => {
  *
  */
 
-app.post("/login", (req, res) => {
-  const { email, password } = req.body;
+app.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-  Admin.findOne({ email: email, password: password })
-    .then((result) => {
-      if (result === null) {
-        res.send({
-          error: "error Ocers",
-        });
-      } else {
-        const { name, email, role } = result;
-        jwt.sign(
-          { name: name, email: email, role: role },
-          process.env.JWT_SECRATE,
-          function (err, token) {
-            if (token) {
-              res.send({
-                message: "Login successfully",
-                token: token,
-              });
-            } else {
-              res.send({
-                error: err.message,
-              });
+    await Admin.findOne({ email: email, password: password })
+      .then((result) => {
+        if (result === null) {
+          res.send({
+            error: "error Ocers",
+          });
+        } else {
+          const { name, email, role } = result;
+          jwt.sign(
+            { name: name, email: email, role: role },
+            process.env.JWT_SECRATE,
+            function (err, token) {
+              if (token) {
+                res.send({
+                  message: "Login successfully",
+                  token: token,
+                });
+              } else {
+                res.send({
+                  error: err.message,
+                });
+              }
             }
-          }
-        );
-      }
-    })
-    .catch((error) => {
-      res.send({
-        error: error.message,
+          );
+        }
+      })
+      .catch((error) => {
+        res.send({
+          error: error.message,
+        });
       });
+  } catch (err1) {
+    res.send({
+      error: err1.message,
     });
+  }
 });
 
 /**
